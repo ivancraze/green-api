@@ -72,10 +72,21 @@ export function ChatPage({ session }: { session: ChatSession }) {
           </Typography.Text>
           <Flex gap="small">
             <Flex align="center" gap="small">
-              <Typography.Text type="secondary">
-                Тёмная тема
-              </Typography.Text>
-              <Switch aria-label="Тёмная тема" checked={dark} onChange={setDark} />
+              <Switch
+                aria-label="Тема"
+                checked={dark}
+                checkedChildren={
+                  <Flex align="center" gap={4} justify="flex-start">
+                    Темная
+                  </Flex>
+                }
+                onChange={setDark}
+                unCheckedChildren={
+                  <Flex align="center" gap={4} justify="flex-start">
+                    Светлая
+                  </Flex>
+                }
+              />
             </Flex>
             {
               session.demo && <Button onClick={() => setFailuresOpen(true)}>
@@ -181,10 +192,18 @@ export function ChatPage({ session }: { session: ChatSession }) {
         title="Демоотказы"
       >
         <Flex gap="small" vertical>
-          <Checkbox checked={Boolean(failures.send)} onChange={event => changeFailure('send', event.target.checked)}>
+          <Checkbox
+            checked={Boolean(failures.send)}
+            onChange={event => changeFailure('send', event.target.checked)}
+            styles={{ icon: { borderRadius: 2 } }}
+          >
             Отказ отправки
           </Checkbox>
-          <Checkbox checked={Boolean(failures.receive)} onChange={event => changeFailure('receive', event.target.checked)}>
+          <Checkbox
+            checked={Boolean(failures.receive)}
+            onChange={event => changeFailure('receive', event.target.checked)}
+            styles={{ icon: { borderRadius: 2 } }}
+          >
             Отказ получения
           </Checkbox>
           <Typography.Text type="secondary">

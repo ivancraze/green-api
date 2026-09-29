@@ -1,0 +1,15 @@
+.page {
+  box-sizing: border-box;
+  min-height: 100dvh;
+  padding: 24px 16px;
+}
+
+.container {
+  width: 100%;
+  max-width: 900px;
+  margin: auto;
+}
+
+.mode {
+  padding-bottom: 24px;
+}

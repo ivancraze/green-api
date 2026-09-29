@@ -72,19 +72,21 @@ it('сохраняет отдельные черновики при перекл
   expect(screen.getByRole('textbox', { name: 'Сообщение' })).toHaveValue('')
 })
 
-it('переключает светлую и тёмную схему чата', async () => {
+it('переключает тему на входе и сохраняет её в чате', async () => {
   render(<App />)
+  fireEvent.click(screen.getByRole('switch', { name: 'Тема' }))
+  expect(screen.getByRole('switch', { name: 'Тема' })).toBeChecked()
   fireEvent.click(screen.getByRole('button', { name: 'Войти в демо' }))
   fireEvent.click(await screen.findByRole('menuitem', { name: 'Анна · MAX' }))
   const history = screen.getByRole('region', { name: 'История сообщений' })
-  const lightBackground = history.style.backgroundColor
-  const scheme = screen.getByRole('switch', { name: 'Тёмная тема' })
-  fireEvent.click(scheme)
+  const darkBackground = history.style.backgroundColor
+  const scheme = screen.getByRole('switch', { name: 'Тема' })
   expect(scheme).toBeChecked()
-  expect(history.style.backgroundColor).not.toBe(lightBackground)
   fireEvent.click(scheme)
   expect(scheme).not.toBeChecked()
-  expect(history.style.backgroundColor).toBe(lightBackground)
+  expect(history.style.backgroundColor).not.toBe(darkBackground)
+  fireEvent.click(scheme)
+  expect(history.style.backgroundColor).toBe(darkBackground)
 })
 
 it('отмечает входящие прочитанными после открытия реального разговора', async () => {
