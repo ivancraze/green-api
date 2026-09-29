@@ -1,10 +1,17 @@
-import { type PropsWithChildren, useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { type PropsWithChildren, useCallback, useMemo, useState } from 'react'
 
 import { type Session, SessionContext } from './session-context'
 
 export function SessionProvider({ children }: PropsWithChildren) {
-  const [session, setSession] = useState<Session | null>(null)
-  const value = useMemo(() => ({ session, setSession }), [session])
+  const queryClient = useQueryClient()
+  const [currentSession, setCurrentSession] = useState<Session | null>(null)
+  const setSession = useCallback((next: Session | null) => {
+    void queryClient.cancelQueries()
+    queryClient.clear()
+    setCurrentSession(next)
+  }, [queryClient])
+  const value = useMemo(() => ({ session: currentSession, setSession }), [currentSession, setSession])
 
   return (
     <SessionContext value={value}>

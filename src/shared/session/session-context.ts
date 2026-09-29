@@ -1,8 +1,11 @@
 import { createContext, use } from 'react'
 
+import type { Messenger, MessengerAdapter } from '@/shared/api'
+
 export interface Session {
   id: string
-  messenger: 'max' | 'whatsapp' | 'telegram'
+  messenger: Messenger
+  adapter: MessengerAdapter
 }
 
 interface SessionContextValue {
