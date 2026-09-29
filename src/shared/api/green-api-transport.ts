@@ -25,6 +25,9 @@ export function createGreenApiTransport({ apiUrl, idInstance, apiTokenInstance }
   }
 
   return {
+    get: (method: string, signal: AbortSignal, minutes?: number) => request(
+      'GET', `${method}/${apiTokenInstance}${minutes === undefined ? '' : `?minutes=${minutes}`}`, signal,
+    ),
     post: (method: string, body: object, signal: AbortSignal) => request('POST', `${method}/${apiTokenInstance}`, signal, body),
     receive: (signal: AbortSignal) => request('GET', `receiveNotification/${apiTokenInstance}`, signal),
     acknowledge: (receiptId: string, signal: AbortSignal) => request('DELETE', `deleteNotification/${apiTokenInstance}/${receiptId}`, signal),

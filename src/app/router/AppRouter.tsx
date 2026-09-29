@@ -1,5 +1,11 @@
 import { Result } from 'antd'
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router'
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation
+} from 'react-router'
 
 import { ChatPage } from '@/pages/chat'
 import { LoginPage } from '@/pages/login'

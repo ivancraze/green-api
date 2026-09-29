@@ -1,4 +1,9 @@
-import { afterEach, expect, it, vi } from 'vitest'
+import {
+  afterEach,
+  expect,
+  it,
+  vi
+} from 'vitest'
 
 import { type ConnectionCredentials, createTelegramAdapter } from '@/shared/api'
 
@@ -6,6 +11,13 @@ const credentials: ConnectionCredentials = {
   messenger: 'telegram', apiUrl: 'https://api.example.test', idInstance: '123', apiTokenInstance: 'synthetic-token',
 }
 afterEach(() => vi.unstubAllGlobals())
+
+function stubHistoryFetch(fetchMock: (url: string, init: RequestInit) => Promise<Response>) {
+  vi.stubGlobal('fetch', (url: string, init: RequestInit) => {
+    if (/\/(getChats|getChatHistory|lastIncomingMessages|lastOutgoingMessages)\//.test(url)) return Promise.resolve(Response.json([]))
+    return fetchMock(url, init)
+  })
+}
 
 it('создаёт чат по возвращённому Telegram chatId, отправляет и принимает личный текст без дубля', async () => {
   const incoming = { receiptId: 7, body: {
@@ -19,7 +31,7 @@ it('создаёт чат по возвращённому Telegram chatId, от�
     .mockResolvedValueOnce(Response.json(incoming))
     .mockResolvedValueOnce(Response.json(incoming))
     .mockResolvedValueOnce(Response.json({ result: true }))
-  vi.stubGlobal('fetch', fetchMock)
+  stubHistoryFetch(fetchMock)
   const adapter = createTelegramAdapter(credentials)
   const signal = new AbortController().signal
   const chat = await adapter.resolveRecipient('+79991234567', signal)
@@ -41,7 +53,7 @@ it('создаёт чат по возвращённому Telegram chatId, от�
   } })
   expect(await adapter.receiveNotification(signal)).toEqual(notification)
   await adapter.acknowledgeNotification('7', signal)
-  expect(await adapter.getMessages(chat.id, signal)).toEqual([sent, notification?.message])
+  expect(await adapter.getMessages(chat.id, signal)).toEqual([notification?.message, sent])
   expect(fetchMock).toHaveBeenLastCalledWith(
     'https://api.example.test/waInstance123/deleteNotification/synthetic-token/7',
     expect.objectContaining({ method: 'DELETE', signal }),
@@ -49,7 +61,7 @@ it('создаёт чат по возвращённому Telegram chatId, от�
 })
 
 it('объясняет недоступность поиска без создания чата', async () => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ exist: false, chatId: '' })))
+  stubHistoryFetch(vi.fn().mockResolvedValue(Response.json({ exist: false, chatId: '' })))
   const adapter = createTelegramAdapter(credentials)
   const signal = new AbortController().signal
   await expect(adapter.resolveRecipient('+79991234567', signal)).rejects.toMatchObject({
@@ -57,4 +69,31 @@ it('объясняет недоступность поиска без созда
     message: 'Аккаунт Telegram по этому номеру не найден или скрыт настройками приватности.',
   })
   expect(await adapter.getChats(signal)).toEqual([])
+})
+
+it('отмечает открытый чат прочитанным и обновляет подтверждённый статус исходящего', async () => {
+  const status = (receiptId: number, value: string) => ({ receiptId, body: {
+    typeWebhook: 'outgoingMessageStatus', idMessage: 'outgoing-1', chatId: '10000000', status: value,
+  } })
+  const fetchMock = vi.fn()
+    .mockResolvedValueOnce(Response.json({ exist: true, chatId: '10000000' }))
+    .mockResolvedValueOnce(Response.json({ idMessage: 'outgoing-1' }))
+    .mockResolvedValueOnce(Response.json({ setRead: true }))
+    .mockResolvedValueOnce(Response.json(status(1, 'delivered')))
+    .mockResolvedValueOnce(Response.json(status(2, 'sent')))
+    .mockResolvedValueOnce(Response.json(status(3, 'read')))
+  stubHistoryFetch(fetchMock)
+  const adapter = createTelegramAdapter(credentials)
+  const signal = new AbortController().signal
+  const chat = await adapter.resolveRecipient('+79991234567', signal)
+  await adapter.sendText(chat.id, 'Текст', signal)
+  await adapter.readChat(chat.id, signal)
+  expect(fetchMock).toHaveBeenNthCalledWith(3,
+    'https://api.example.test/waInstance123/readChat/synthetic-token',
+    expect.objectContaining({ method: 'POST', body: '{"chatId":"10000000"}', signal }),
+  )
+  expect((await adapter.receiveNotification(signal))?.message?.status).toBe('delivered')
+  expect((await adapter.receiveNotification(signal))?.message?.status).toBe('delivered')
+  expect((await adapter.receiveNotification(signal))?.message?.status).toBe('read')
+  expect((await adapter.getMessages(chat.id, signal))[0].status).toBe('read')
 })

@@ -9,6 +9,8 @@ import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
+import importSpecifiersNewline from './eslint-rules/import-specifiers-newline.js'
+
 export default defineConfig([
   globalIgnores(['dist']),
   {
@@ -25,6 +27,7 @@ export default defineConfig([
     files: ['**/*.{ts,tsx}'],
     plugins: {
       '@stylistic': stylistic,
+      'local': { rules: { 'import-specifiers-newline': importSpecifiersNewline } },
       perfectionist,
     },
     rules: {
@@ -32,6 +35,9 @@ export default defineConfig([
       '@typescript-eslint/no-unused-vars': 'error',
       'perfectionist/sort-jsx-props': ['error', { type: 'alphabetical', order: 'asc' }],
       '@stylistic/indent': ['error', 2],
+      '@stylistic/no-trailing-spaces': 'error',
+      '@stylistic/object-curly-newline': ['error', { ImportDeclaration: { minProperties: 4, consistent: true } }],
+      'local/import-specifiers-newline': 'error',
       '@stylistic/jsx-curly-newline': ['error', { multiline: 'require', singleline: 'consistent' }],
       '@stylistic/jsx-closing-bracket-location': ['error', 'line-aligned'],
       '@stylistic/jsx-first-prop-new-line': ['error', 'multiline'],

@@ -1,4 +1,9 @@
-import { afterEach, expect, it, vi } from 'vitest'
+import {
+  afterEach,
+  expect,
+  it,
+  vi
+} from 'vitest'
 
 import { type ConnectionCredentials, createMaxAdapter } from '@/shared/api'
 
@@ -7,11 +12,18 @@ const credentials: ConnectionCredentials = {
 }
 afterEach(() => vi.unstubAllGlobals())
 
+function stubHistoryFetch(fetchMock: (url: string, init: RequestInit) => Promise<Response>) {
+  vi.stubGlobal('fetch', (url: string, init: RequestInit) => {
+    if (/\/(getChats|getChatHistory|lastIncomingMessages|lastOutgoingMessages)\//.test(url)) return Promise.resolve(Response.json([]))
+    return fetchMock(url, init)
+  })
+}
+
 it('разрешает MAX-номер через CheckAccount и показывает отправку только после принятия SendMessage', async () => {
   const fetchMock = vi.fn()
     .mockResolvedValueOnce(Response.json({ exist: true, chatId: 'max-user-42', fromCache: false }))
     .mockResolvedValueOnce(Response.json({ idMessage: 'message-77' }))
-  vi.stubGlobal('fetch', fetchMock)
+  stubHistoryFetch(fetchMock)
   const adapter = createMaxAdapter(credentials)
   const signal = new AbortController().signal
   expect(await adapter.getChats(signal)).toEqual([])
@@ -38,7 +50,7 @@ it('не создаёт чат без получателя и не добавл�
     .mockResolvedValueOnce(Response.json({ exist: false, chatId: '' }))
     .mockResolvedValueOnce(Response.json({ exist: true, chatId: '42' }))
     .mockResolvedValueOnce(Response.json({ idMessage: '' }))
-  vi.stubGlobal('fetch', fetchMock)
+  stubHistoryFetch(fetchMock)
   const adapter = createMaxAdapter(credentials)
   const signal = new AbortController().signal
   await expect(adapter.resolveRecipient('+12025550123', signal)).rejects.toMatchObject({ code: 'invalid-max-phone' })
@@ -65,7 +77,7 @@ it('получает личный текст MAX, не дублирует пов
     .mockResolvedValueOnce(Response.json(incoming))
     .mockResolvedValueOnce(Response.json({ result: false }))
     .mockResolvedValueOnce(Response.json({ result: true }))
-  vi.stubGlobal('fetch', fetchMock)
+  stubHistoryFetch(fetchMock)
   const adapter = createMaxAdapter(credentials)
   const signal = new AbortController().signal
   expect(await adapter.receiveNotification(signal)).toBeNull()
@@ -90,9 +102,11 @@ it('получает личный текст MAX, не дублирует пов
 
 it('подтверждает известное неподдерживаемое событие и отвергает некорректный ответ', async () => {
   const fetchMock = vi.fn()
-    .mockResolvedValueOnce(Response.json({ receiptId: 7, body: { typeWebhook: 'outgoingMessageStatus' } }))
+    .mockResolvedValueOnce(Response.json({ receiptId: 7, body: {
+      typeWebhook: 'outgoingMessageStatus', idMessage: 'unknown', chatId: '42', status: 'delivered',
+    } }))
     .mockResolvedValueOnce(Response.json({ receiptId: 8, body: { typeWebhook: 'incomingMessageReceived' } }))
-  vi.stubGlobal('fetch', fetchMock)
+  stubHistoryFetch(fetchMock)
   const adapter = createMaxAdapter(credentials)
   const signal = new AbortController().signal
   expect(await adapter.receiveNotification(signal)).toEqual({ receiptId: '7', message: null })

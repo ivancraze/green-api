@@ -1,7 +1,12 @@
 import { AppError } from '@/shared/errors'
 
 import { createDemoData, demoStartTime } from './demo-data'
-import type { Message, Messenger, MessengerAdapter, Notification } from './messenger'
+import type {
+  Message,
+  Messenger,
+  MessengerAdapter,
+  Notification
+} from './messenger'
 
 export const demoDelays = { operation: 200, reply: 800 } as const
 
@@ -46,6 +51,7 @@ export function createDemoAdapter(messenger: Messenger): DemoAdapter {
   function findChat(chatId: string) {
     const chat = chats.find(chat => chat.id === chatId)
     if (!chat) throw new AppError('unknown')
+
     return chat
   }
 
@@ -68,11 +74,13 @@ export function createDemoAdapter(messenger: Messenger): DemoAdapter {
     },
     async getChats(signal) {
       await operation(signal)
+
       return chats.map(chat => ({ ...chat }))
     },
     async getMessages(chatId, signal) {
       await operation(signal)
       findChat(chatId)
+
       return messages.filter(message => message.chatId === chatId).map(message => ({ ...message }))
     },
     async resolveRecipient(phone, signal) {
@@ -82,6 +90,7 @@ export function createDemoAdapter(messenger: Messenger): DemoAdapter {
       if (existing) return { ...existing }
       const chat = { id: `demo-${messenger}-${chats.length + 1}`, title: phone, phone }
       chats.push(chat)
+
       return { ...chat }
     },
     async sendText(chatId, text, signal) {
@@ -109,7 +118,11 @@ export function createDemoAdapter(messenger: Messenger): DemoAdapter {
         notification: { receiptId: `demo-${messenger}-receipt-${++receiptSequence}`, message: incoming },
         readyAt: Date.now() + demoDelays.reply,
       })
+
       return { ...outgoing }
+    },
+    async readChat(_chatId, signal) {
+      signal.throwIfAborted()
     },
     async receiveNotification(signal) {
       await operation(signal, 'receive')
@@ -117,6 +130,7 @@ export function createDemoAdapter(messenger: Messenger): DemoAdapter {
       if (!pending || pending.readyAt > Date.now()) return null
       const { receiptId, message } = pending.notification
       if (!messages.some(existing => existing.id === message.id)) messages.push(message)
+
       return { receiptId, message: { ...message } }
     },
     async acknowledgeNotification(receiptId, signal) {

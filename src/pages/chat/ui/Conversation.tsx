@@ -1,14 +1,35 @@
 import { useQuery } from '@tanstack/react-query'
-import { Avatar, Button, Card, Empty, Flex, Grid, Input, Typography } from 'antd'
-import { useEffect, useRef } from 'react'
+import {
+  Avatar,
+  Button,
+  Card,
+  Empty,
+  Flex,
+  Grid,
+  Input,
+  Typography
+} from 'antd'
+import { useEffect, useRef, useState } from 'react'
 
-import type { Chat } from '@/shared/api'
+import type { Chat, Message } from '@/shared/api'
 import { normalizeError } from '@/shared/errors'
 import type { ChatSession } from '@/shared/session'
 
 import { messageQueryKey } from '../api/chat-query-key'
 import { useSendText } from '../api/use-send-text'
 import styles from './chat-layout.module.css'
+
+function messageStatus(message: Message, real: boolean): string {
+  if (message.direction === 'incoming') return 'Входящее'
+  if (!real) return 'Исходящее'
+  switch (message.status) {
+    case 'read': return 'Прочитано'
+    case 'delivered': return 'Доставлено'
+    case 'failed': return 'Не отправлено'
+    case 'sent': return 'Отправлено · доставка не подтверждена'
+    default: return 'Принято API · доставка не подтверждена'
+  }
+}
 
 export function Conversation({ chat, session, draft, onDraftChange, onBack, sendingEnabled }: {
   chat: Chat
@@ -26,9 +47,27 @@ export function Conversation({ chat, session, draft, onDraftChange, onBack, send
     retry: false,
   })
   const sendText = useSendText(session, chat.id, () => onDraftChange(''))
+  const [visible, setVisible] = useState(() => document.visibilityState === 'visible')
   const historyRef = useRef<HTMLDivElement>(null)
   const sendButtonRef = useRef<HTMLButtonElement>(null)
   const lastMessageId = messages.data?.at(-1)?.id
+  const lastIncomingId = messages.data?.findLast(message => message.direction === 'incoming')?.id
+  useQuery({
+    enabled: 'credentials' in session && visible && messages.isSuccess && !!lastIncomingId,
+    queryKey: ['session', session.id, session.messenger, 'read-chat', chat.id, lastIncomingId],
+    queryFn: async ({ signal }) => {
+      await session.adapter.readChat(chat.id, signal)
+      return true
+    },
+    retry: false,
+    staleTime: Infinity,
+  })
+
+  useEffect(() => {
+    const updateVisibility = () => setVisible(document.visibilityState === 'visible')
+    document.addEventListener('visibilitychange', updateVisibility)
+    return () => document.removeEventListener('visibilitychange', updateVisibility)
+  }, [])
 
   useEffect(() => {
     const history = historyRef.current
@@ -105,7 +144,7 @@ export function Conversation({ chat, session, draft, onDraftChange, onBack, send
                               {message.author}
                             </Typography.Text>
                             <Typography.Text type="secondary">
-                              {message.direction === 'incoming' ? 'Входящее' : 'credentials' in session ? 'Принято API · доставка не подтверждена' : 'Исходящее'}
+                              {messageStatus(message, 'credentials' in session)}
                             </Typography.Text>
                             <time dateTime={new Date(message.timestamp).toISOString()}>
                               {new Date(message.timestamp).toLocaleString('ru-RU')}
@@ -143,9 +182,9 @@ export function Conversation({ chat, session, draft, onDraftChange, onBack, send
           </Flex>
           <div>
             <Button
-              disabled={!draft.trim() || sendText.isPending || !messages.isSuccess}
+              disabled={!draft.trim() || sendText.isPending || messages.isPending}
               loading={sendText.isPending}
-              onClick={() => { if (messages.isSuccess) sendText.send(draft) }}
+              onClick={() => { if (!messages.isPending) sendText.send(draft) }}
               ref={sendButtonRef}
               type="primary"
             >

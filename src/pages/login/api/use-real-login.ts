@@ -1,7 +1,14 @@
 import { useMutation } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 
-import { checkRealConnection, type ConnectionCredentials, createMaxAdapter, createTelegramAdapter, createWhatsappAdapter, normalizeCredentials } from '@/shared/api'
+import {
+  checkRealConnection,
+  type ConnectionCredentials,
+  createMaxAdapter,
+  createTelegramAdapter,
+  createWhatsappAdapter,
+  normalizeCredentials
+} from '@/shared/api'
 import { useSession } from '@/shared/session'
 
 export function useRealLogin() {

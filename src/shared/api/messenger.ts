@@ -20,6 +20,7 @@ export interface Message {
   author: string
   text: string
   timestamp: number
+  status?: 'sent' | 'delivered' | 'read' | 'failed'
 }
 
 export interface Notification {
@@ -38,6 +39,7 @@ export interface MessengerAdapter {
   // Принимает уже нормализованный международный номер с ведущим +.
   resolveRecipient(phone: string, signal: AbortSignal): Promise<Chat>
   sendText(chatId: string, text: string, signal: AbortSignal): Promise<Message>
+  readChat(chatId: string, signal: AbortSignal): Promise<void>
   // null — пустая очередь; уведомление повторяется до подтверждения.
   receiveNotification(signal: AbortSignal): Promise<Notification | null>
   acknowledgeNotification(receiptId: string, signal: AbortSignal): Promise<void>

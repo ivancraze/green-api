@@ -1,12 +1,26 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import type {} from '@testing-library/jest-dom/vitest'
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within
+} from '@testing-library/react'
 import { StrictMode } from 'react'
-import { afterAll, beforeAll, expect, it, vi } from 'vitest'
+import {
+  afterAll,
+  beforeAll,
+  expect,
+  it,
+  vi
+} from 'vitest'
 
 import { App } from '@/app'
 import { createQueryClient } from '@/app/lib/query-client'
 import { ChatPage } from '@/pages/chat'
+import { Conversation } from '@/pages/chat/ui/Conversation'
 import { createDemoAdapter, type Message } from '@/shared/api'
 import { AppError } from '@/shared/errors'
 import { type Session, SessionContext } from '@/shared/session/session-context'
@@ -53,6 +67,39 @@ it('сохраняет отдельные черновики при перекл
   fireEvent.click(screen.getByRole('button', { name: 'Войти в демо' }))
   fireEvent.click(await screen.findByRole('menuitem', { name: 'Борис · MAX' }))
   expect(screen.getByRole('textbox', { name: 'Сообщение' })).toHaveValue('')
+})
+
+it('отмечает входящие прочитанными после открытия реального разговора', async () => {
+  const reportError = vi.fn()
+  const client = createQueryClient(reportError)
+  const adapter = createDemoAdapter('telegram')
+  const chat = (await adapter.getChats(new AbortController().signal))[0]
+  const readChat = vi.spyOn(adapter, 'readChat')
+  const session = {
+    id: 'real-read', messenger: 'telegram' as const, adapter,
+    credentials: { messenger: 'telegram' as const, apiUrl: 'https://example.test', idInstance: '1', apiTokenInstance: 'test' },
+  }
+  const view = render(<QueryClientProvider client={client}>
+    <Conversation
+      chat={chat}
+      draft=""
+      onBack={vi.fn()}
+      onDraftChange={vi.fn()}
+      sendingEnabled
+      session={session}
+    />
+  </QueryClientProvider>)
+  try {
+    await waitFor(() => expect(readChat).toHaveBeenCalledOnce())
+    expect(readChat).toHaveBeenCalledWith(chat.id, expect.any(AbortSignal))
+    await waitFor(() => expect(client.getQueryCache().findAll({
+      queryKey: ['session', session.id, session.messenger, 'read-chat', chat.id],
+    }).some(query => query.state.data === true)).toBe(true))
+    expect(reportError).not.toHaveBeenCalled()
+  } finally {
+    view.unmount()
+    client.clear()
+  }
 })
 
 function renderChat(adapter = createDemoAdapter('max')) {
@@ -138,6 +185,29 @@ it('показывает локальную безопасную ошибку и
   expect(await screen.findByRole('menuitem', { name: 'Анна · MAX' })).toBeVisible()
   expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   client.clear()
+})
+
+it('повторяет временный отказ сервера при реальной загрузке списка без показа ошибки', async () => {
+  const adapter = createDemoAdapter('max')
+  const getChats = vi.spyOn(adapter, 'getChats').mockRejectedValueOnce(new AppError('http', 503))
+  const client = createQueryClient(vi.fn())
+  const session = {
+    id: 'real-retry', messenger: 'max' as const, adapter,
+    credentials: { messenger: 'max' as const, apiUrl: 'https://example.test', idInstance: '1', apiTokenInstance: 'synthetic-token' },
+  }
+  const view = render(<QueryClientProvider client={client}>
+    <SessionContext value={{ session, setSession: vi.fn() }}>
+      <ChatPage session={session} />
+    </SessionContext>
+  </QueryClientProvider>)
+  try {
+    expect(await screen.findByRole('menuitem', { name: 'Анна · MAX' }, { timeout: 3500 })).toBeVisible()
+    expect(getChats).toHaveBeenCalledTimes(2)
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  } finally {
+    view.unmount()
+    client.clear()
+  }
 })
 
 it('загружает историю с автором и временем, выводит HTML как текст и открывает пустой чат', async () => {

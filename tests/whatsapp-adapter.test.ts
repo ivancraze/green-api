@@ -1,4 +1,9 @@
-import { afterEach, expect, it, vi } from 'vitest'
+import {
+  afterEach,
+  expect,
+  it,
+  vi
+} from 'vitest'
 
 import { type ConnectionCredentials, createWhatsappAdapter } from '@/shared/api'
 
@@ -6,6 +11,13 @@ const credentials: ConnectionCredentials = {
   messenger: 'whatsapp', apiUrl: 'https://api.example.test', idInstance: '123', apiTokenInstance: 'synthetic-token',
 }
 afterEach(() => vi.unstubAllGlobals())
+
+function stubHistoryFetch(fetchMock: (url: string, init: RequestInit) => Promise<Response>) {
+  vi.stubGlobal('fetch', (url: string, init: RequestInit) => {
+    if (/\/(getChats|getChatHistory|lastIncomingMessages|lastOutgoingMessages)\//.test(url)) return Promise.resolve(Response.json([]))
+    return fetchMock(url, init)
+  })
+}
 
 it('использует возвращённый WhatsApp chatId при отправке и принимает личный текст без дубля', async () => {
   const incoming = {
@@ -23,7 +35,7 @@ it('использует возвращённый WhatsApp chatId при отп�
     .mockResolvedValueOnce(Response.json({ existsWhatsapp: true, chatId: '888@lid', phoneNumber: '[79991234567@c.us]' }))
     .mockResolvedValueOnce(Response.json(incoming))
     .mockResolvedValueOnce(Response.json({ result: true }))
-  vi.stubGlobal('fetch', fetchMock)
+  stubHistoryFetch(fetchMock)
   const adapter = createWhatsappAdapter(credentials)
   const signal = new AbortController().signal
   const chat = await adapter.resolveRecipient('+79991234567', signal)
@@ -50,7 +62,7 @@ it('использует возвращённый WhatsApp chatId при отп�
   expect(await adapter.receiveNotification(signal)).toEqual(notification)
   await adapter.acknowledgeNotification('42', signal)
   expect(await adapter.getChats(signal)).toEqual([chat])
-  expect(await adapter.getMessages(chat.id, signal)).toEqual([sent, notification?.message])
+  expect(await adapter.getMessages(chat.id, signal)).toEqual([notification?.message, sent])
   expect(fetchMock).toHaveBeenLastCalledWith(
     'https://api.example.test/waInstance123/deleteNotification/synthetic-token/42',
     expect.objectContaining({ method: 'DELETE', signal }),
@@ -60,7 +72,9 @@ it('использует возвращённый WhatsApp chatId при отп�
 it('пропускает группы и известные события, но отвергает некорректный текст', async () => {
   const fetchMock = vi.fn()
     .mockResolvedValueOnce(new Response(''))
-    .mockResolvedValueOnce(Response.json({ receiptId: 1, body: { typeWebhook: 'outgoingMessageStatus' } }))
+    .mockResolvedValueOnce(Response.json({ receiptId: 1, body: {
+      typeWebhook: 'outgoingMessageStatus', idMessage: 'unknown', chatId: '123@c.us', status: 'delivered',
+    } }))
     .mockResolvedValueOnce(Response.json({ receiptId: 2, body: {
       typeWebhook: 'incomingMessageReceived', senderData: { chatId: '123@g.us' },
       messageData: { typeMessage: 'textMessage' },
@@ -69,7 +83,7 @@ it('пропускает группы и известные события, но
       typeWebhook: 'incomingMessageReceived', idMessage: '3', timestamp: 123,
       senderData: { chatId: '123@c.us' }, messageData: { typeMessage: 'textMessage' },
     } }))
-  vi.stubGlobal('fetch', fetchMock)
+  stubHistoryFetch(fetchMock)
   const adapter = createWhatsappAdapter(credentials)
   const signal = new AbortController().signal
   expect(await adapter.receiveNotification(signal)).toBeNull()

@@ -1,4 +1,9 @@
-import { afterEach, expect, it, vi } from 'vitest'
+import {
+  afterEach,
+  expect,
+  it,
+  vi
+} from 'vitest'
 
 import { checkRealConnection, type ConnectionCredentials } from '@/shared/api'
 

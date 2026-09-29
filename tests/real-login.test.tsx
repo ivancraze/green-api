@@ -1,7 +1,18 @@
 import { QueryClientProvider } from '@tanstack/react-query'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor
+} from '@testing-library/react'
 import { StrictMode } from 'react'
-import { afterEach, expect, it, vi } from 'vitest'
+import {
+  afterEach,
+  expect,
+  it,
+  vi
+} from 'vitest'
 
 import { createQueryClient } from '@/app/lib/query-client'
 import { AppRouter } from '@/app/router'
@@ -37,7 +48,7 @@ afterEach(() => vi.unstubAllGlobals())
 it('сохраняет ввод при отказе, входит после ручного повтора и очищает сессию/кеш при выходе', async () => {
   const fetchMock = vi.fn().mockResolvedValueOnce(new Response('', { status: 401 }))
     .mockResolvedValueOnce(Response.json({ stateInstance: 'authorized' }))
-    .mockResolvedValue(Response.json(null))
+    .mockImplementation((url: string) => Promise.resolve(Response.json(/\/(getChats|lastIncomingMessages|lastOutgoingMessages)\//.test(url) ? [] : null)))
   vi.stubGlobal('fetch', fetchMock)
   const { client, reportError, unmount } = renderLogin()
   fillCredentials()
@@ -87,7 +98,7 @@ it('блокирует повторный вход и отменяет запр�
 it('после реального входа в WhatsApp открывает общий чат', async () => {
   vi.stubGlobal('fetch', vi.fn()
     .mockResolvedValueOnce(Response.json({ stateInstance: 'authorized' }))
-    .mockResolvedValue(Response.json(null)))
+    .mockImplementation((url: string) => Promise.resolve(Response.json(/\/(getChats|lastIncomingMessages|lastOutgoingMessages)\//.test(url) ? [] : null))))
   const { unmount } = renderLogin()
   fireEvent.click(screen.getByRole('radio', { name: 'WhatsApp' }))
   fillCredentials()
@@ -100,7 +111,7 @@ it('после реального входа в WhatsApp открывает об
 it('после реального входа в Telegram открывает общий чат', async () => {
   vi.stubGlobal('fetch', vi.fn()
     .mockResolvedValueOnce(Response.json({ stateInstance: 'authorized' }))
-    .mockResolvedValue(Response.json(null)))
+    .mockImplementation((url: string) => Promise.resolve(Response.json(/\/(getChats|lastIncomingMessages|lastOutgoingMessages)\//.test(url) ? [] : null))))
   const { unmount } = renderLogin()
   fireEvent.click(screen.getByRole('radio', { name: 'Telegram' }))
   fillCredentials()

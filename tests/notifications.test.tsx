@@ -42,6 +42,34 @@ it('подтверждает неподдерживаемое событие, з
   }
 })
 
+it('обновляет исходящее сообщение по уведомлению о доставке без дубля', async () => {
+  const client = createQueryClient(vi.fn())
+  const adapter = createDemoAdapter('telegram')
+  const session: Session = { id: 'status', messenger: 'telegram', adapter }
+  const original = {
+    id: 'outgoing-1', chatId: 'chat-1', direction: 'outgoing' as const,
+    author: 'Вы', text: 'Текст', timestamp: 1,
+  }
+  const delivered = { ...original, status: 'delivered' as const }
+  client.setQueryData(messageQueryKey(session, original.chatId), [original])
+  vi.spyOn(adapter, 'receiveNotification')
+    .mockResolvedValueOnce({ receiptId: '1', message: delivered })
+    .mockResolvedValue(null)
+  const acknowledge = vi.spyOn(adapter, 'acknowledgeNotification').mockResolvedValue()
+  const view = renderHook(() => useNotifications(session), {
+    wrapper: ({ children }: PropsWithChildren) => (<QueryClientProvider client={client}>
+      {children}
+    </QueryClientProvider>),
+  })
+  try {
+    await waitFor(() => expect(acknowledge).toHaveBeenCalledOnce())
+    expect(client.getQueryData(messageQueryKey(session, original.chatId))).toEqual([delivered])
+  } finally {
+    view.unmount()
+    client.clear()
+  }
+})
+
 it('восстанавливает получение с задержкой, показывает одну локальную ошибку и останавливается при отказе авторизации', async () => {
   vi.useFakeTimers()
   const reportError = vi.fn()

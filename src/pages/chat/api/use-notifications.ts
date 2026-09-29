@@ -20,7 +20,6 @@ export function useNotifications(session: ChatSession) {
       const { chat, message, receiptId } = notification
       if (chat) {
         const chatsKey = chatQueryKey(session)
-        await queryClient.cancelQueries({ queryKey: chatsKey, exact: true })
         signal.throwIfAborted()
         queryClient.setQueryData<Chat[]>(chatsKey, current => (
           current?.some(existing => existing.id === chat.id) ? current : [...(current ?? []), chat]
@@ -41,7 +40,9 @@ export function useNotifications(session: ChatSession) {
         await queryClient.cancelQueries({ queryKey, exact: true })
         signal.throwIfAborted()
         queryClient.setQueryData<Message[]>(queryKey, (messages = []) => (
-          messages.some(existing => existing.id === message.id) ? messages : [...messages, message]
+          messages.some(existing => existing.id === message.id)
+            ? messages.map(existing => existing.id === message.id ? message : existing)
+            : [...messages, message]
         ))
       }
       await session.adapter.acknowledgeNotification(receiptId, signal)

@@ -1,5 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
-import { Button, Card, Checkbox, Empty, Flex, Menu, Modal, Typography } from 'antd'
+import {
+  Button,
+  Card,
+  Checkbox,
+  Empty,
+  Flex,
+  Menu,
+  Modal,
+  Typography
+} from 'antd'
 import { useState } from 'react'
 
 import type { DemoFailures } from '@/shared/api'
@@ -32,7 +41,12 @@ export function ChatPage({ session }: { session: ChatSession }) {
     queryKey: chatQueryKey(session),
     queryFn: ({ signal }) => session.adapter.getChats(signal),
     meta: { errorHandling: 'local' },
-    retry: false,
+    retry: (failures, error) => {
+      if (!('credentials' in session) || failures >= 2) return false
+      const { code, status } = normalizeError(error)
+      return code === 'network' || code === 'http' && (status === 429 || status !== undefined && status >= 500)
+    },
+    retryDelay: 1200,
   })
   const selectedChat = chats.data?.find(chat => chat.id === selectedChatId)
 
