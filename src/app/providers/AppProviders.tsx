@@ -1,21 +1,23 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { App as AntdApp, ConfigProvider } from 'antd'
 import ruRU from 'antd/locale/ru_RU'
-import { type PropsWithChildren, useState } from 'react'
+import { type PropsWithChildren } from 'react'
 
 import { SessionProvider } from '@/shared/session'
 
-export function AppProviders({ children }: PropsWithChildren) {
-  const [queryClient] = useState(() => new QueryClient())
+import { ErrorBoundary } from './ErrorBoundary'
+import { QueryProvider } from './QueryProvider'
 
+export function AppProviders({ children }: PropsWithChildren) {
   return (
     <ConfigProvider locale={ruRU}>
       <AntdApp>
-        <QueryClientProvider client={queryClient}>
-          <SessionProvider>
-            {children}
-          </SessionProvider>
-        </QueryClientProvider>
+        <ErrorBoundary>
+          <QueryProvider>
+            <SessionProvider>
+              {children}
+            </SessionProvider>
+          </QueryProvider>
+        </ErrorBoundary>
       </AntdApp>
     </ConfigProvider>
   )
