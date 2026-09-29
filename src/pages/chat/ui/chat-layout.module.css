@@ -22,10 +22,18 @@
   min-height: 0;
 }
 
+.panelTitle {
+  min-height: 44px;
+}
+
 .sidebarBody {
   flex: 1;
   min-height: 0;
   overflow: auto;
+}
+
+.page .sidebar .sidebarBody .chatMenu {
+  border-inline-end: 0;
 }
 
 .sidebar .chatMenu .chatItem {

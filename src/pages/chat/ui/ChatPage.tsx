@@ -84,7 +84,11 @@ export function ChatPage({ session }: { session: Session }) {
           }
           loading={chats.isPending}
           size="small"
-          title="Чаты"
+          title={
+            <Flex align="center" className={styles.panelTitle}>
+              Чаты
+            </Flex>
+          }
         >
           {
             chats.isError ? (

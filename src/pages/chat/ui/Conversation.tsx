@@ -55,7 +55,7 @@ export function Conversation({ chat, session, draft, onDraftChange, onBack, send
       role="region"
       size="small"
       title={
-        <Flex align="center" gap="small">
+        <Flex align="center" className={styles.panelTitle} gap="small">
           <Button aria-label="Назад к списку чатов" onClick={onBack}>
             ←
           </Button>
