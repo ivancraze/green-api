@@ -1,5 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { Avatar, Flex, Typography } from 'antd'
+import {
+  Avatar,
+  Flex,
+  theme,
+  Typography
+} from 'antd'
 
 import type { Chat } from '@/shared/api'
 import type { ChatSession } from '@/shared/session'
@@ -8,6 +13,7 @@ import { messageQueryKey } from '../api/chat-query-key'
 import styles from './chat-layout.module.css'
 
 export function ChatPreview({ chat, session }: { chat: Chat, session: ChatSession }) {
+  const { token } = theme.useToken()
   const messages = useQuery({
     queryKey: messageQueryKey(session, chat.id),
     queryFn: ({ signal }) => session.adapter.getMessages(chat.id, signal),
@@ -19,7 +25,12 @@ export function ChatPreview({ chat, session }: { chat: Chat, session: ChatSessio
 
   return (
     <Flex align="center" gap="small">
-      <Avatar aria-hidden className={styles.fixed}>
+      <Avatar
+        aria-hidden
+        className={styles.fixed}
+        size="large"
+        style={{ backgroundColor: token.colorPrimary }}
+      >
         {chat.title.slice(0, 1)}
       </Avatar>
       <Flex className={styles.chatSummary} vertical>

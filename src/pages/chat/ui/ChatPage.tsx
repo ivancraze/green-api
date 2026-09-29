@@ -1,3 +1,4 @@
+import { PlusOutlined } from "@ant-design/icons";
 import { useQuery } from '@tanstack/react-query'
 import {
   Button,
@@ -5,13 +6,16 @@ import {
   Checkbox,
   Empty,
   Flex,
+  Layout,
   Menu,
   Modal,
-  Typography
+  Switch,
+  Typography,
 } from 'antd'
 import { useState } from 'react'
 
 import type { DemoFailures } from '@/shared/api'
+import { useColorScheme } from '@/shared/config'
 import { normalizeError } from '@/shared/errors'
 import { type ChatSession, useSession } from '@/shared/session'
 
@@ -25,6 +29,7 @@ import { CreateChatForm } from './CreateChatForm'
 const messengerNames = { max: 'MAX', whatsapp: 'WhatsApp', telegram: 'Telegram' }
 
 export function ChatPage({ session }: { session: ChatSession }) {
+  const { dark, setDark } = useColorScheme()
   const { setSession } = useSession()
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
   const [drafts, setDrafts] = useState<Record<string, string>>({})
@@ -51,11 +56,9 @@ export function ChatPage({ session }: { session: ChatSession }) {
   const selectedChat = chats.data?.find(chat => chat.id === selectedChatId)
 
   return (
-    <Flex
+    <Layout
       className={styles.page}
-      component="main"
-      gap="small"
-      vertical
+      role="main"
     >
       <Card className={styles.fixed} size="small">
         <Flex
@@ -68,6 +71,12 @@ export function ChatPage({ session }: { session: ChatSession }) {
             {`${'credentials' in session ? 'Реальное подключение' : 'Деморежим'}: ${messengerNames[session.messenger]}`}
           </Typography.Text>
           <Flex gap="small">
+            <Flex align="center" gap="small">
+              <Typography.Text type="secondary">
+                Тёмная тема
+              </Typography.Text>
+              <Switch aria-label="Тёмная тема" checked={dark} onChange={setDark} />
+            </Flex>
             {
               session.demo && <Button onClick={() => setFailuresOpen(true)}>
                 Демоотказы
@@ -92,9 +101,14 @@ export function ChatPage({ session }: { session: ChatSession }) {
           className={styles.sidebar}
           classNames={{ body: styles.sidebarBody }}
           extra={
-            <Button aria-label="Новый чат" disabled={!chats.isSuccess} onClick={() => setCreateOpen(true)}>
-              +
-            </Button>
+            <Button
+              aria-label="Новый чат"
+              disabled={!chats.isSuccess}
+              icon={<PlusOutlined />}
+              onClick={() => setCreateOpen(true)}
+              shape="circle"
+              type="primary"
+            />
           }
           loading={chats.isPending}
           size="small"
@@ -178,6 +192,6 @@ export function ChatPage({ session }: { session: ChatSession }) {
           </Typography.Text>
         </Flex>
       </Modal>
-    </Flex>
+    </Layout>
   )
 }

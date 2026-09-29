@@ -1,3 +1,4 @@
+import { ArrowLeftOutlined, SendOutlined } from '@ant-design/icons'
 import { useQuery } from '@tanstack/react-query'
 import {
   Avatar,
@@ -5,8 +6,8 @@ import {
   Card,
   Empty,
   Flex,
-  Grid,
   Input,
+  theme,
   Typography
 } from 'antd'
 import { useEffect, useRef, useState } from 'react'
@@ -39,7 +40,7 @@ export function Conversation({ chat, session, draft, onDraftChange, onBack, send
   onBack: () => void
   sendingEnabled: boolean
 }) {
-  const screens = Grid.useBreakpoint()
+  const { token } = theme.useToken()
   const messages = useQuery({
     queryKey: messageQueryKey(session, chat.id),
     queryFn: ({ signal }) => session.adapter.getMessages(chat.id, signal),
@@ -95,13 +96,16 @@ export function Conversation({ chat, session, draft, onDraftChange, onBack, send
       size="small"
       title={
         <Flex align="center" className={styles.panelTitle} gap="small">
-          <Button aria-label="Назад к списку чатов" onClick={onBack}>
-            ←
-          </Button>
-          <Avatar aria-hidden className={styles.fixed}>
+          <Button aria-label="Назад к списку чатов" icon={<ArrowLeftOutlined />} onClick={onBack} />
+          <Avatar
+            aria-hidden
+            className={styles.fixed}
+            size="small"
+            style={{ backgroundColor: token.colorPrimary }}
+          >
             {chat.title.slice(0, 1)}
           </Avatar>
-          <Flex className={styles.chatSummary} vertical>
+          <Flex className={styles.chatSummary} gap={8}>
             <Typography.Text ellipsis strong>
               {chat.title}
             </Typography.Text>
@@ -121,6 +125,7 @@ export function Conversation({ chat, session, draft, onDraftChange, onBack, send
           loading={messages.isPending}
           role="region"
           size="small"
+          styles={{ root: { backgroundColor: token.colorPrimaryBg } }}
         >
           <div className={styles.historyScroll} ref={historyRef}>
             {
@@ -138,21 +143,36 @@ export function Conversation({ chat, session, draft, onDraftChange, onBack, send
                   {
                     messages.data.map(message => (
                       <Flex justify={message.direction === 'incoming' ? 'flex-start' : 'flex-end'} key={message.id}>
-                        <Card className={styles.message} size="small">
+                        <Card
+                          className={styles.message}
+                          size="small"
+                          styles={
+                            {
+                              root: {
+                                backgroundColor: message.direction === 'outgoing' ? token.colorPrimaryBgHover : token.colorBgElevated,
+                                borderColor: message.direction === 'outgoing' ? token.colorPrimaryBorder : token.colorBorderSecondary,
+                              },
+                            }
+                          }
+                        >
                           <Flex gap="small" wrap>
                             <Typography.Text strong>
                               {message.author}
                             </Typography.Text>
-                            <Typography.Text type="secondary">
-                              {messageStatus(message, 'credentials' in session)}
-                            </Typography.Text>
-                            <time dateTime={new Date(message.timestamp).toISOString()}>
-                              {new Date(message.timestamp).toLocaleString('ru-RU')}
-                            </time>
                           </Flex>
                           <Typography.Paragraph className={styles.messageText}>
                             {message.text}
                           </Typography.Paragraph>
+                          <Flex gap="small" justify="flex-end" wrap>
+                            <Typography.Text type="secondary">
+                              {messageStatus(message, 'credentials' in session)}
+                            </Typography.Text>
+                            <Typography.Text type="secondary">
+                              <time dateTime={new Date(message.timestamp).toISOString()}>
+                                {new Date(message.timestamp).toLocaleString('ru-RU')}
+                              </time>
+                            </Typography.Text>
+                          </Flex>
                         </Card>
                       </Flex>
                     ))
@@ -168,29 +188,28 @@ export function Conversation({ chat, session, draft, onDraftChange, onBack, send
         </Card>
         <Flex className={styles.fixed} gap="small" vertical>
           <Flex gap="small" vertical>
-            <label htmlFor="message-draft">
-              Сообщение
-            </label>
-            <Input.TextArea
-              autoSize={{ minRows: 2, maxRows: screens.md ? 6 : 3 }}
+            <Input
+              aria-label="Сообщение"
               disabled={sendText.isPending}
               id="message-draft"
               onChange={event => onDraftChange(event.target.value)}
               placeholder="Введите текст сообщения"
+              size="large"
+              suffix={
+                <Button
+                  aria-label="Отправить"
+                  disabled={!draft.trim() || sendText.isPending || messages.isPending}
+                  icon={<SendOutlined />}
+                  loading={sendText.isPending}
+                  onClick={() => { if (!messages.isPending) sendText.send(draft) }}
+                  ref={sendButtonRef}
+                  shape="circle"
+                  type="primary"
+                />
+              }
               value={draft}
             />
           </Flex>
-          <div>
-            <Button
-              disabled={!draft.trim() || sendText.isPending || messages.isPending}
-              loading={sendText.isPending}
-              onClick={() => { if (!messages.isPending) sendText.send(draft) }}
-              ref={sendButtonRef}
-              type="primary"
-            >
-              Отправить
-            </Button>
-          </div>
         </Flex>
       </Flex>
     </Card>

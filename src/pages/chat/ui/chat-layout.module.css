@@ -1,5 +1,6 @@
 .page {
   box-sizing: border-box;
+  gap: 8px;
   height: 100dvh;
   padding: 8px;
   overflow: hidden;
@@ -102,6 +103,7 @@
 }
 
 .messageText {
+  margin-bottom: 4px;
   white-space: pre-wrap;
 }
 
