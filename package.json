@@ -21,6 +21,7 @@
     "@ant-design/cli": "6.6.5",
     "@eslint-react/eslint-plugin": "5.22.1",
     "@eslint/js": "^10.0.1",
+    "@stylistic/eslint-plugin": "5.10.0",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",
