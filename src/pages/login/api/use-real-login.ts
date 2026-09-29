@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 
-import { checkRealConnection, type ConnectionCredentials, normalizeCredentials } from '@/shared/api'
+import { checkRealConnection, type ConnectionCredentials, createMaxAdapter, createWhatsappAdapter, normalizeCredentials } from '@/shared/api'
 import { useSession } from '@/shared/session'
 
 export function useRealLogin() {
@@ -23,7 +23,13 @@ export function useRealLogin() {
         const credentials = normalizeCredentials(request.credentials)
         await checkRealConnection(credentials, request.controller.signal)
         request.controller.signal.throwIfAborted()
-        setSession({ id: crypto.randomUUID(), messenger: credentials.messenger, credentials })
+        setSession({
+          id: crypto.randomUUID(),
+          messenger: credentials.messenger,
+          credentials,
+          ...(credentials.messenger === 'max' ? { adapter: createMaxAdapter(credentials) } : {}),
+          ...(credentials.messenger === 'whatsapp' ? { adapter: createWhatsappAdapter(credentials) } : {}),
+        })
       }
       finally {
         if (pendingRef.current === request) pendingRef.current = null

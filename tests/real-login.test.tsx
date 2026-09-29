@@ -36,7 +36,8 @@ afterEach(() => vi.unstubAllGlobals())
 
 it('сохраняет ввод при отказе, входит после ручного повтора и очищает сессию/кеш при выходе', async () => {
   const fetchMock = vi.fn().mockResolvedValueOnce(new Response('', { status: 401 }))
-    .mockResolvedValue(Response.json({ stateInstance: 'authorized' }))
+    .mockResolvedValueOnce(Response.json({ stateInstance: 'authorized' }))
+    .mockResolvedValue(Response.json(null))
   vi.stubGlobal('fetch', fetchMock)
   const { client, reportError, unmount } = renderLogin()
   fillCredentials()
@@ -45,10 +46,13 @@ it('сохраняет ввод при отказе, входит после р�
   expect(screen.getByLabelText('apiTokenInstance')).toHaveValue('synthetic-token')
   expect(JSON.stringify(client.getMutationCache().getAll().map(mutation => mutation.state))).not.toContain('synthetic-token')
   fireEvent.click(screen.getByRole('button', { name: 'Подключиться' }))
-  expect(await screen.findByText('Подключение подтверждено')).toBeVisible()
+  expect(await screen.findByText('Реальное подключение: MAX')).toBeVisible()
   expect(window.location.pathname).toBe('/max')
-  expect(fetchMock).toHaveBeenCalledTimes(2)
-  expect(client.getQueryCache().getAll()).toHaveLength(0)
+  expect(fetchMock).toHaveBeenCalledWith(
+    'https://api.example.test/waInstance123/receiveNotification/synthetic-token',
+    expect.objectContaining({ method: 'GET' }),
+  )
+  expect(client.getQueryCache().getAll().map(query => query.queryKey).flat()).not.toContain('synthetic-token')
   expect(JSON.stringify(client.getMutationCache().getAll().map(mutation => mutation.state))).not.toContain('synthetic-token')
   client.setQueryData(['old-data'], 'old')
   fireEvent.click(screen.getByRole('button', { name: 'Выйти' }))
@@ -78,4 +82,17 @@ it('блокирует повторный вход и отменяет запр�
   await act(async () => resolve(Response.json({ stateInstance: 'authorized' })))
   expect(client.getMutationCache().getAll()[0]?.state.data).toBeUndefined()
   expect(window.location.pathname).toBe('/login')
+})
+
+it('после реального входа в WhatsApp открывает общий чат', async () => {
+  vi.stubGlobal('fetch', vi.fn()
+    .mockResolvedValueOnce(Response.json({ stateInstance: 'authorized' }))
+    .mockResolvedValue(Response.json(null)))
+  const { unmount } = renderLogin()
+  fireEvent.click(screen.getByRole('radio', { name: 'WhatsApp' }))
+  fillCredentials()
+  expect(await screen.findByText('Реальное подключение: WhatsApp')).toBeVisible()
+  expect(window.location.pathname).toBe('/whatsapp')
+  expect(await screen.findByText('Чатов пока нет')).toBeVisible()
+  unmount()
 })

@@ -24,7 +24,8 @@ export interface Message {
 
 export interface Notification {
   receiptId: string
-  message: Message
+  message: Message | null
+  chat?: Chat
 }
 
 // Credentials передаются реальному адаптеру при создании, а не каждому запросу.

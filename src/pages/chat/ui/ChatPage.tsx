@@ -51,7 +51,7 @@ export function ChatPage({ session }: { session: ChatSession }) {
           wrap
         >
           <Typography.Text strong>
-            {`Деморежим: ${messengerNames[session.messenger]}`}
+            {`${'credentials' in session ? 'Реальное подключение' : 'Деморежим'}: ${messengerNames[session.messenger]}`}
           </Typography.Text>
           <Flex gap="small">
             {

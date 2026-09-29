@@ -105,7 +105,7 @@ export function Conversation({ chat, session, draft, onDraftChange, onBack, send
                               {message.author}
                             </Typography.Text>
                             <Typography.Text type="secondary">
-                              {message.direction === 'incoming' ? 'Входящее' : 'Исходящее'}
+                              {message.direction === 'incoming' ? 'Входящее' : 'credentials' in session ? 'Принято API · доставка не подтверждена' : 'Исходящее'}
                             </Typography.Text>
                             <time dateTime={new Date(message.timestamp).toISOString()}>
                               {new Date(message.timestamp).toLocaleString('ru-RU')}

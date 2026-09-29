@@ -1,5 +1,12 @@
 const errorMessages = {
   'invalid-credentials': 'Проверьте HTTPS-адрес API, idInstance и токен из кабинета GREEN-API.',
+  'invalid-max-phone': 'В MAX доступны номера России (+7) и Беларуси (+375) в международном формате.',
+  'invalid-max-message': 'Введите сообщение длиной от 1 до 4000 символов.',
+  'invalid-whatsapp-phone': 'Введите номер WhatsApp в международном формате: от 11 до 15 цифр после +.',
+  'invalid-whatsapp-message': 'Введите сообщение длиной от 1 до 20000 символов.',
+  'whatsapp-recipient-unavailable': 'Аккаунт получателя не найден в WhatsApp.',
+  'recipient-unavailable': 'Аккаунт получателя не найден в MAX.',
+  'recipient-check-failed': 'Не удалось проверить получателя в MAX. Повторите попытку позже.',
   'instance-unavailable': 'Инстанс пока не готов к работе. Проверьте его состояние в кабинете GREEN-API и повторите подключение.',
   cancelled: 'Запрос отменён.',
   network: 'Не удалось связаться с сервером. Проверьте подключение к интернету и повторите попытку.',

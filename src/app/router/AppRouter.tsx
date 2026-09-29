@@ -27,7 +27,7 @@ function ChatRoute({ messenger }: { messenger: Messenger }) {
   if (!session) return <Navigate replace state={{ messenger }} to={loginPath} />
   if (session.messenger !== messenger) return <Navigate replace to={messengerPaths[session.messenger]} />
 
-  if ('credentials' in session) return <ReadyPage />
+  if (!('adapter' in session)) return <ReadyPage />
 
   return <ChatPage key={session.id} session={session} />
 }

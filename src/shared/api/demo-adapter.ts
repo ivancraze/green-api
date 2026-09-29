@@ -1,7 +1,7 @@
 import { AppError } from '@/shared/errors'
 
 import { createDemoData, demoStartTime } from './demo-data'
-import type { Messenger, MessengerAdapter, Notification } from './messenger'
+import type { Message, Messenger, MessengerAdapter, Notification } from './messenger'
 
 export const demoDelays = { operation: 200, reply: 800 } as const
 
@@ -38,7 +38,7 @@ function wait(signal: AbortSignal): Promise<void> {
 
 export function createDemoAdapter(messenger: Messenger): DemoAdapter {
   const { chats, messages } = createDemoData(messenger)
-  const queue: { notification: Notification, readyAt: number }[] = []
+  const queue: { notification: Notification & { message: Message }, readyAt: number }[] = []
   let failures: DemoFailures = {}
   let messageSequence = messages.length
   let receiptSequence = 0

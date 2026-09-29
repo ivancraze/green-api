@@ -94,7 +94,7 @@ export function LoginPage({ initialMessenger = 'max' }: { initialMessenger?: Mes
                 </Form.Item>
                 <Typography.Paragraph type="secondary">
                   Данные хранятся только в памяти и сбрасываются при выходе или перезагрузке.
-                  Подключение проверяет авторизацию инстанса; реальные чаты пока недоступны.
+                  Подключение проверяет авторизацию инстанса.
                 </Typography.Paragraph>
               </>
             )
