@@ -1,12 +1,12 @@
+import { ChatPage } from '@/pages/chat'
 import { LoginPage } from '@/pages/login'
-import { ReadyPage } from '@/pages/ready'
 import { useSession } from '@/shared/session'
 
 import { AppProviders } from '../providers/AppProviders'
 
 function SessionPage() {
   const { session } = useSession()
-  return session ? <ReadyPage /> : <LoginPage />
+  return session ? <ChatPage key={session.id} session={session} /> : <LoginPage />
 }
 
 export function App() {

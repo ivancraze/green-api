@@ -26,6 +26,8 @@ export default defineConfig([
       '@stylistic': stylistic,
     },
     rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'error',
       '@stylistic/indent': ['error', 2],
       '@stylistic/jsx-closing-bracket-location': ['error', 'line-aligned'],
       '@stylistic/jsx-first-prop-new-line': ['error', 'multiline'],
