@@ -2,6 +2,7 @@ import js from '@eslint/js'
 import eslintReact from '@eslint-react/eslint-plugin'
 import stylistic from '@stylistic/eslint-plugin'
 import { defineConfig, globalIgnores } from 'eslint/config'
+import perfectionist from 'eslint-plugin-perfectionist'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import simpleImportSort from 'eslint-plugin-simple-import-sort'
@@ -24,11 +25,14 @@ export default defineConfig([
     files: ['**/*.{ts,tsx}'],
     plugins: {
       '@stylistic': stylistic,
+      perfectionist,
     },
     rules: {
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'error',
+      'perfectionist/sort-jsx-props': ['error', { type: 'alphabetical', order: 'asc' }],
       '@stylistic/indent': ['error', 2],
+      '@stylistic/jsx-curly-newline': ['error', { multiline: 'require', singleline: 'consistent' }],
       '@stylistic/jsx-closing-bracket-location': ['error', 'line-aligned'],
       '@stylistic/jsx-first-prop-new-line': ['error', 'multiline'],
       '@stylistic/jsx-max-props-per-line': [

@@ -20,34 +20,38 @@ export function CreateChatForm({ session, disabled, onCreated }: {
   return (
     <Card title="Новый чат">
       <Form
-        form={form}
-        name="create-chat"
-        layout="vertical"
         disabled={disabled || creation.isPending}
-        onFinish={({ phone }) => {
-          const normalized = normalizePhone(phone)
-          if (normalized && !disabled && !creation.isPending) creation.mutate(normalized)
-        }}
+        form={form}
+        layout="vertical"
+        name="create-chat"
+        onFinish={
+          ({ phone }) => {
+            const normalized = normalizePhone(phone)
+            if (normalized && !disabled && !creation.isPending) creation.mutate(normalized)
+          }
+        }
       >
         <Form.Item
-          name="phone"
-          label="Телефон"
           extra="Международный номер с + и кодом страны. Пробелы, скобки и дефисы допустимы."
-          rules={[{
-            validator: (_, value: unknown) => (
-              typeof value === 'string' && normalizePhone(value)
-                ? Promise.resolve()
-                : Promise.reject(new Error('Введите международный номер: + и от 8 до 15 цифр, код страны не начинается с 0.'))
-            ),
-          }]}
+          label="Телефон"
+          name="phone"
+          rules={
+            [{
+              validator: (_, value: unknown) => (
+                typeof value === 'string' && normalizePhone(value)
+                  ? Promise.resolve()
+                  : Promise.reject(new Error('Введите международный номер: + и от 8 до 15 цифр, код страны не начинается с 0.'))
+              ),
+            }]
+          }
         >
-          <Input type="tel" autoComplete="tel" placeholder="+7 900 123-45-67" />
+          <Input autoComplete="tel" placeholder="+7 900 123-45-67" type="tel" />
         </Form.Item>
         <Button
-          type="primary"
+          disabled={disabled || creation.isPending}
           htmlType="submit"
           loading={creation.isPending}
-          disabled={disabled || creation.isPending}
+          type="primary"
         >
           Создать чат
         </Button>

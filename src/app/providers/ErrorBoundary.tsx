@@ -12,14 +12,14 @@ export class ErrorBoundary extends Component<PropsWithChildren, { hasError: bool
     if (this.state.hasError) {
       return (
         <Result
-          status="error"
-          title="Не удалось отобразить приложение"
-          subTitle="Перезагрузите страницу. Сессия и данные текущего запуска будут сброшены."
           extra={
-            <Button type="primary" onClick={() => window.location.reload()}>
+            <Button onClick={() => window.location.reload()} type="primary">
               Перезагрузить страницу
             </Button>
           }
+          status="error"
+          subTitle="Перезагрузите страницу. Сессия и данные текущего запуска будут сброшены."
+          title="Не удалось отобразить приложение"
         />
       )
     }

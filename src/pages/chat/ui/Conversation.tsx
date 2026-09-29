@@ -8,30 +8,32 @@ export function Conversation({ chat }: { chat: Chat }) {
 
   return (
     <Card
-      title={<Typography.Title level={2}>
-        {chat.title}
-      </Typography.Title>}
+      title={
+        <Typography.Title level={2}>
+          {chat.title}
+        </Typography.Title>
+      }
     >
-      <Flex vertical gap="middle">
+      <Flex gap="middle" vertical>
         <Typography.Text type="secondary">
           {chat.phone}
         </Typography.Text>
         <Empty description="История сообщений пока недоступна." />
         <Form layout="vertical" onFinish={() => {}}>
           <Form.Item
-            label="Сообщение"
-            htmlFor="message-draft"
             extra="Отправка сообщений пока недоступна."
+            htmlFor="message-draft"
+            label="Сообщение"
           >
             <Input.TextArea
-              id="message-draft"
-              value={draft}
-              onChange={event => setDraft(event.target.value)}
               autoSize={{ minRows: 2, maxRows: 6 }}
+              id="message-draft"
+              onChange={event => setDraft(event.target.value)}
               placeholder="Введите текст сообщения"
+              value={draft}
             />
           </Form.Item>
-          <Button type="primary" htmlType="submit" disabled>
+          <Button disabled htmlType="submit" type="primary">
             Отправить
           </Button>
         </Form>

@@ -6,8 +6,8 @@ import { appName } from '@/shared/config'
 
 import { useDemoLogin } from '../api/use-demo-login'
 
-export function LoginPage() {
-  const [messenger, setMessenger] = useState<Messenger>('max')
+export function LoginPage({ initialMessenger = 'max' }: { initialMessenger?: Messenger }) {
+  const [messenger, setMessenger] = useState<Messenger>(initialMessenger)
   const login = useDemoLogin()
 
   return (
@@ -23,26 +23,28 @@ export function LoginPage() {
           Выберите мессенджер для деморежима. Данные инстанса и токен не нужны.
         </Typography.Paragraph>
         <Form layout="vertical" onFinish={() => { if (!login.isPending) login.mutate(messenger) }}>
-          <Form.Item label="Мессенджер" htmlFor="messenger">
+          <Form.Item htmlFor="messenger" label="Мессенджер">
             <Radio.Group
-              id="messenger"
               aria-label="Мессенджер"
-              name="messenger"
-              value={messenger}
-              onChange={event => setMessenger(event.target.value)}
               disabled={login.isPending}
-              options={[
-                { label: 'MAX', value: 'max' },
-                { label: 'WhatsApp', value: 'whatsapp' },
-                { label: 'Telegram', value: 'telegram' },
-              ]}
+              id="messenger"
+              name="messenger"
+              onChange={event => setMessenger(event.target.value)}
+              options={
+                [
+                  { label: 'MAX', value: 'max' },
+                  { label: 'WhatsApp', value: 'whatsapp' },
+                  { label: 'Telegram', value: 'telegram' },
+                ]
+              }
+              value={messenger}
             />
           </Form.Item>
           <Button
-            type="primary"
+            disabled={login.isPending}
             htmlType="submit"
             loading={login.isPending}
-            disabled={login.isPending}
+            type="primary"
           >
             Войти в демо
           </Button>
