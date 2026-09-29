@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import type { DemoFailures } from '@/shared/api'
 import { normalizeError } from '@/shared/errors'
-import { type Session, useSession } from '@/shared/session'
+import { type ChatSession, useSession } from '@/shared/session'
 
 import { chatQueryKey } from '../api/chat-query-key'
 import { useNotifications } from '../api/use-notifications'
@@ -15,7 +15,7 @@ import { CreateChatForm } from './CreateChatForm'
 
 const messengerNames = { max: 'MAX', whatsapp: 'WhatsApp', telegram: 'Telegram' }
 
-export function ChatPage({ session }: { session: Session }) {
+export function ChatPage({ session }: { session: ChatSession }) {
   const { setSession } = useSession()
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
   const [drafts, setDrafts] = useState<Record<string, string>>({})

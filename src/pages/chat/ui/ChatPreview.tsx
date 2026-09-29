@@ -2,12 +2,12 @@ import { useQuery } from '@tanstack/react-query'
 import { Avatar, Flex, Typography } from 'antd'
 
 import type { Chat } from '@/shared/api'
-import type { Session } from '@/shared/session'
+import type { ChatSession } from '@/shared/session'
 
 import { messageQueryKey } from '../api/chat-query-key'
 import styles from './chat-layout.module.css'
 
-export function ChatPreview({ chat, session }: { chat: Chat, session: Session }) {
+export function ChatPreview({ chat, session }: { chat: Chat, session: ChatSession }) {
   const messages = useQuery({
     queryKey: messageQueryKey(session, chat.id),
     queryFn: ({ signal }) => session.adapter.getMessages(chat.id, signal),

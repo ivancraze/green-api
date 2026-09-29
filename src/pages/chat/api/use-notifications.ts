@@ -2,11 +2,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import type { Message } from '@/shared/api'
 import { normalizeError } from '@/shared/errors'
-import type { Session } from '@/shared/session'
+import type { ChatSession } from '@/shared/session'
 
 import { messageQueryKey } from './chat-query-key'
 
-export function useNotifications(session: Session) {
+export function useNotifications(session: ChatSession) {
   const queryClient = useQueryClient()
 
   return useQuery({

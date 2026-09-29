@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 
 import { ChatPage } from '@/pages/chat'
 import { LoginPage } from '@/pages/login'
+import { ReadyPage } from '@/pages/ready'
 import type { Messenger } from '@/shared/api'
 import { loginPath, messengerPaths } from '@/shared/config'
 import { useSession } from '@/shared/session'
@@ -25,6 +26,8 @@ function ChatRoute({ messenger }: { messenger: Messenger }) {
 
   if (!session) return <Navigate replace state={{ messenger }} to={loginPath} />
   if (session.messenger !== messenger) return <Navigate replace to={messengerPaths[session.messenger]} />
+
+  if ('credentials' in session) return <ReadyPage />
 
   return <ChatPage key={session.id} session={session} />
 }

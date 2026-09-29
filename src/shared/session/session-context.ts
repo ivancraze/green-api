@@ -1,12 +1,18 @@
 import { createContext, use } from 'react'
 
-import type { DemoAdapter, Messenger, MessengerAdapter } from '@/shared/api'
+import type { ConnectionCredentials, DemoAdapter, Messenger, MessengerAdapter } from '@/shared/api'
 
-export interface Session {
+export interface ChatSession {
   id: string
   messenger: Messenger
   adapter: MessengerAdapter
   demo?: Pick<DemoAdapter, 'setFailures'>
+}
+
+export type Session = ChatSession | {
+  id: string
+  messenger: Messenger
+  credentials: ConnectionCredentials
 }
 
 interface SessionContextValue {

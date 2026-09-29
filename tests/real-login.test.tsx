@@ -1,0 +1,81 @@
+import { QueryClientProvider } from '@tanstack/react-query'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { StrictMode } from 'react'
+import { afterEach, expect, it, vi } from 'vitest'
+
+import { createQueryClient } from '@/app/lib/query-client'
+import { AppRouter } from '@/app/router'
+import { SessionProvider } from '@/shared/session'
+
+function renderLogin() {
+  vi.stubGlobal('matchMedia', vi.fn().mockImplementation((media: string) => ({
+    matches: false, media, addListener: vi.fn(), removeListener: vi.fn(),
+    addEventListener: vi.fn(), removeEventListener: vi.fn(), dispatchEvent: vi.fn(),
+  })))
+  window.history.replaceState(null, '', '/login')
+  const reportError = vi.fn()
+  const client = createQueryClient(reportError)
+  const view = render(<StrictMode>
+    <QueryClientProvider client={client}>
+      <SessionProvider>
+        <AppRouter />
+      </SessionProvider>
+    </QueryClientProvider>
+  </StrictMode>)
+  return { ...view, client, reportError }
+}
+
+function fillCredentials() {
+  fireEvent.click(screen.getByRole('radio', { name: 'Реальное подключение' }))
+  fireEvent.change(screen.getByLabelText('apiUrl'), { target: { value: 'https://api.example.test' } })
+  fireEvent.change(screen.getByLabelText('idInstance'), { target: { value: '123' } })
+  fireEvent.change(screen.getByLabelText('apiTokenInstance'), { target: { value: 'synthetic-token' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Подключиться' }))
+}
+afterEach(() => vi.unstubAllGlobals())
+
+it('сохраняет ввод при отказе, входит после ручного повтора и очищает сессию/кеш при выходе', async () => {
+  const fetchMock = vi.fn().mockResolvedValueOnce(new Response('', { status: 401 }))
+    .mockResolvedValue(Response.json({ stateInstance: 'authorized' }))
+  vi.stubGlobal('fetch', fetchMock)
+  const { client, reportError, unmount } = renderLogin()
+  fillCredentials()
+  await waitFor(() => expect(reportError).toHaveBeenCalledWith(expect.objectContaining({ code: 'unauthorized' })))
+  expect(fetchMock).toHaveBeenCalledTimes(1)
+  expect(screen.getByLabelText('apiTokenInstance')).toHaveValue('synthetic-token')
+  expect(JSON.stringify(client.getMutationCache().getAll().map(mutation => mutation.state))).not.toContain('synthetic-token')
+  fireEvent.click(screen.getByRole('button', { name: 'Подключиться' }))
+  expect(await screen.findByText('Подключение подтверждено')).toBeVisible()
+  expect(window.location.pathname).toBe('/max')
+  expect(fetchMock).toHaveBeenCalledTimes(2)
+  expect(client.getQueryCache().getAll()).toHaveLength(0)
+  expect(JSON.stringify(client.getMutationCache().getAll().map(mutation => mutation.state))).not.toContain('synthetic-token')
+  client.setQueryData(['old-data'], 'old')
+  fireEvent.click(screen.getByRole('button', { name: 'Выйти' }))
+  expect(await screen.findByRole('button', { name: 'Войти в демо' })).toBeVisible()
+  expect(client.getQueryCache().getAll()).toHaveLength(0)
+  expect(client.getMutationCache().getAll()).toHaveLength(0)
+  fireEvent.click(screen.getByRole('radio', { name: 'Реальное подключение' }))
+  expect(screen.getByLabelText('apiTokenInstance')).toHaveValue('')
+  unmount()
+  renderLogin()
+  expect(screen.getByRole('button', { name: 'Войти в демо' })).toBeVisible()
+})
+
+it('блокирует повторный вход и отменяет запрос при размонтировании, игнорируя поздний ответ', async () => {
+  let resolve!: (response: Response) => void
+  const fetchMock = vi.fn().mockReturnValue(new Promise<Response>(done => { resolve = done }))
+  vi.stubGlobal('fetch', fetchMock)
+  const { unmount, client } = renderLogin()
+  fillCredentials()
+  await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+  expect(screen.getByLabelText('apiTokenInstance')).toBeDisabled()
+  fireEvent.click(screen.getByRole('button', { name: /Подключиться/ }))
+  expect(fetchMock).toHaveBeenCalledTimes(1)
+  const signal = fetchMock.mock.calls[0][1].signal as AbortSignal
+  unmount()
+  expect(signal.aborted).toBe(true)
+  await act(async () => resolve(Response.json({ stateInstance: 'authorized' })))
+  expect(client.getMutationCache().getAll()[0]?.state.data).toBeUndefined()
+  expect(window.location.pathname).toBe('/login')
+})

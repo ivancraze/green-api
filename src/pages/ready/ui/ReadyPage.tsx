@@ -16,13 +16,13 @@ export function ReadyPage() {
           {appName}
         </Typography.Title>
         <Typography.Title level={2}>
-          Основа готова
+          Подключение подтверждено
         </Typography.Title>
         <Typography.Paragraph>
-          {`Деморежим: ${messengerNames[session.messenger]}.`}
+          {`Мессенджер: ${messengerNames[session.messenger]}.`}
         </Typography.Paragraph>
         <Typography.Paragraph>
-          Пока чисто моки.
+          Инстанс авторизован. Реальные чаты пока недоступны.
           Сессия хранится только в памяти и сбрасывается при перезагрузке страницы.
         </Typography.Paragraph>
         <Button onClick={() => setSession(null)}>

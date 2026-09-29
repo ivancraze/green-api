@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 
 import type { Chat } from '@/shared/api'
 import { normalizeError } from '@/shared/errors'
-import type { Session } from '@/shared/session'
+import type { ChatSession } from '@/shared/session'
 
 import { messageQueryKey } from '../api/chat-query-key'
 import { useSendText } from '../api/use-send-text'
@@ -12,7 +12,7 @@ import styles from './chat-layout.module.css'
 
 export function Conversation({ chat, session, draft, onDraftChange, onBack, sendingEnabled }: {
   chat: Chat
-  session: Session
+  session: ChatSession
   draft: string
   onDraftChange: (draft: string) => void
   onBack: () => void

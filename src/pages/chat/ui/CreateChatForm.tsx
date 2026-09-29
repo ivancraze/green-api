@@ -1,13 +1,13 @@
 import { Button, Form, Input, Modal } from 'antd'
 
 import type { Chat } from '@/shared/api'
-import type { Session } from '@/shared/session'
+import type { ChatSession } from '@/shared/session'
 
 import { useCreateChat } from '../api/use-create-chat'
 import { normalizePhone } from '../model/phone'
 
 export function CreateChatForm({ session, disabled, onCreated, open, onClose }: {
-  session: Session
+  session: ChatSession
   disabled: boolean
   onCreated: (chat: Chat) => void
   open: boolean

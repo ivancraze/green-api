@@ -2,11 +2,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 
 import type { Chat } from '@/shared/api'
-import type { Session } from '@/shared/session'
+import type { ChatSession } from '@/shared/session'
 
 import { chatQueryKey } from './chat-query-key'
 
-export function useCreateChat(session: Session, onCreated: (chat: Chat) => void) {
+export function useCreateChat(session: ChatSession, onCreated: (chat: Chat) => void) {
   const queryClient = useQueryClient()
   const controllerRef = useRef<AbortController | null>(null)
 
