@@ -93,7 +93,12 @@ export function ChatPage({ session }: { session: ChatSession }) {
                 Демоотказы
               </Button>
             }
-            <Button danger icon={<LogoutOutlined />} onClick={() => setSession(null)}>
+            <Button
+              aria-label="Выйти"
+              danger
+              icon={<LogoutOutlined />}
+              onClick={() => setSession(null)}
+            >
               Выйти
             </Button>
           </Flex>

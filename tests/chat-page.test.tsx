@@ -267,6 +267,35 @@ it('показывает безопасную ошибку истории без
   client.clear()
 })
 
+it('повторяет временный отказ сервера при реальной загрузке истории без показа ошибки', async () => {
+  const adapter = createDemoAdapter('max')
+  const getMessages = vi.spyOn(adapter, 'getMessages').mockRejectedValueOnce(new AppError('http', 503))
+  const client = createQueryClient(vi.fn())
+  const session = {
+    id: 'real-history-retry', messenger: 'max' as const, adapter,
+    credentials: { messenger: 'max' as const, apiUrl: 'https://example.test', idInstance: '1', apiTokenInstance: 'synthetic-token' },
+  }
+  const chat = (await adapter.getChats(new AbortController().signal))[0]
+  const view = render(<QueryClientProvider client={client}>
+    <Conversation
+      chat={chat}
+      draft=""
+      onBack={vi.fn()}
+      onDraftChange={vi.fn()}
+      sendingEnabled
+      session={session}
+    />
+  </QueryClientProvider>)
+  try {
+    expect(await screen.findByText('Привет! Это тестовый чат MAX.', {}, { timeout: 3000 })).toBeVisible()
+    expect(getMessages).toHaveBeenCalledTimes(2)
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  } finally {
+    view.unmount()
+    client.clear()
+  }
+})
+
 async function submitPhone(phone: string) {
   fireEvent.click(screen.getByRole('button', { name: 'Новый чат' }))
   await waitFor(() => expect(screen.getByRole('button', { name: /Создать чат/ })).toBeEnabled())

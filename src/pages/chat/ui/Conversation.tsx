@@ -45,7 +45,12 @@ export function Conversation({ chat, session, draft, onDraftChange, onBack, send
     queryKey: messageQueryKey(session, chat.id),
     queryFn: ({ signal }) => session.adapter.getMessages(chat.id, signal),
     meta: { errorHandling: 'local' },
-    retry: 2,
+    retry: (failures, error) => {
+      if (!('credentials' in session) || failures >= 2) return false
+      const { code, status } = normalizeError(error)
+      return code === 'network' || code === 'http' && (status === 429 || status !== undefined && status >= 500)
+    },
+    retryDelay: 1200,
   })
   const sendText = useSendText(session, chat.id, () => onDraftChange(''))
   const [visible, setVisible] = useState(() => document.visibilityState === 'visible')

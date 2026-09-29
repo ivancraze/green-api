@@ -102,6 +102,7 @@ export function LoginPage({ initialMessenger = 'max' }: { initialMessenger?: Mes
                 <>
                   <Form.Item>
                     <Checkbox
+                      aria-label="Отказ подключения (демо)"
                       checked={connectionFailure}
                       disabled={isPending}
                       onChange={event => setConnectionFailure(event.target.checked)}
