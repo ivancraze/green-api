@@ -33,7 +33,7 @@ export function LoginPage({ initialMessenger = 'max' }: { initialMessenger?: Mes
       <main className={styles.container}>
         <Card>
           <Flex align="center" gap="small" justify="space-between">
-            <Typography.Title level={2}>
+            <Typography.Title className={styles.title} level={2}>
               {appName}
             </Typography.Title>
             <Switch

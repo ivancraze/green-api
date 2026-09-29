@@ -13,3 +13,7 @@
 .mode {
   padding-bottom: 24px;
 }
+
+.title {
+  margin-top: unset
+}

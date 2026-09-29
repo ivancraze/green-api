@@ -118,6 +118,7 @@ export function ChatPage({ session }: { session: ChatSession }) {
               icon={<PlusOutlined />}
               onClick={() => setCreateOpen(true)}
               shape="circle"
+              size="small"
               type="primary"
             />
           }
