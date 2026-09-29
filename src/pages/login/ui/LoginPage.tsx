@@ -1,4 +1,4 @@
-import { Button, Card, Form, Radio, Typography } from 'antd'
+import { Button, Card, Checkbox, Form, Radio, Typography } from 'antd'
 import { useState } from 'react'
 
 import type { Messenger } from '@/shared/api'
@@ -8,6 +8,7 @@ import { useDemoLogin } from '../api/use-demo-login'
 
 export function LoginPage({ initialMessenger = 'max' }: { initialMessenger?: Messenger }) {
   const [messenger, setMessenger] = useState<Messenger>(initialMessenger)
+  const [connectionFailure, setConnectionFailure] = useState(false)
   const login = useDemoLogin()
 
   return (
@@ -22,7 +23,7 @@ export function LoginPage({ initialMessenger = 'max' }: { initialMessenger?: Mes
         <Typography.Paragraph>
           Выберите мессенджер для деморежима. Данные инстанса и токен не нужны.
         </Typography.Paragraph>
-        <Form layout="vertical" onFinish={() => { if (!login.isPending) login.mutate(messenger) }}>
+        <Form layout="vertical" onFinish={() => { if (!login.isPending) login.mutate({ messenger, connectionFailure }) }}>
           <Form.Item htmlFor="messenger" label="Мессенджер">
             <Radio.Group
               aria-label="Мессенджер"
@@ -40,6 +41,18 @@ export function LoginPage({ initialMessenger = 'max' }: { initialMessenger?: Mes
               value={messenger}
             />
           </Form.Item>
+          <Form.Item>
+            <Checkbox
+              checked={connectionFailure}
+              disabled={login.isPending}
+              onChange={event => setConnectionFailure(event.target.checked)}
+            >
+              Отказ подключения (демо)
+            </Checkbox>
+          </Form.Item>
+          <Typography.Paragraph type="secondary">
+            Для проверки ошибки включите отказ. Затем выключите его и повторите вход.
+          </Typography.Paragraph>
           <Button
             disabled={login.isPending}
             htmlType="submit"

@@ -12,7 +12,7 @@ export function useCreateChat(session: Session, onCreated: (chat: Chat) => void)
 
   useEffect(() => () => controllerRef.current?.abort(), [])
 
-  return useMutation({
+  const mutation = useMutation({
     retry: false,
     mutationFn: async (phone: string) => {
       controllerRef.current?.abort()
@@ -32,4 +32,6 @@ export function useCreateChat(session: Session, onCreated: (chat: Chat) => void)
       onCreated(chat)
     },
   })
+
+  return { ...mutation, cancel: () => controllerRef.current?.abort() }
 }

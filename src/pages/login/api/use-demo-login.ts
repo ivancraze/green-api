@@ -12,13 +12,14 @@ export function useDemoLogin() {
 
   return useMutation({
     retry: false,
-    mutationFn: async (messenger: Messenger) => {
+    mutationFn: async ({ messenger, connectionFailure }: { messenger: Messenger, connectionFailure: boolean }) => {
       controllerRef.current?.abort()
       const request = new AbortController()
       controllerRef.current = request
       const adapter = createDemoAdapter(messenger)
+      adapter.setFailures({ connection: connectionFailure })
       await adapter.checkConnection(request.signal)
-      return { id: crypto.randomUUID(), messenger, adapter }
+      return { id: crypto.randomUUID(), messenger, adapter, demo: { setFailures: adapter.setFailures } }
     },
     onSuccess: (session) => {
       if (!controllerRef.current?.signal.aborted) setSession(session)

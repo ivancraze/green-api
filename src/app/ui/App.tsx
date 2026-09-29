@@ -1,3 +1,5 @@
+import '../styles/global.css'
+
 import { AppProviders } from '../providers/AppProviders'
 import { AppRouter } from '../router'
 

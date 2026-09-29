@@ -1,4 +1,4 @@
-import { Button, Card, Form, Input } from 'antd'
+import { Button, Form, Input, Modal } from 'antd'
 
 import type { Chat } from '@/shared/api'
 import type { Session } from '@/shared/session'
@@ -6,10 +6,12 @@ import type { Session } from '@/shared/session'
 import { useCreateChat } from '../api/use-create-chat'
 import { normalizePhone } from '../model/phone'
 
-export function CreateChatForm({ session, disabled, onCreated }: {
+export function CreateChatForm({ session, disabled, onCreated, open, onClose }: {
   session: Session
   disabled: boolean
   onCreated: (chat: Chat) => void
+  open: boolean
+  onClose: () => void
 }) {
   const [form] = Form.useForm<{ phone: string }>()
   const creation = useCreateChat(session, (chat) => {
@@ -18,8 +20,15 @@ export function CreateChatForm({ session, disabled, onCreated }: {
   })
 
   return (
-    <Card title="Новый чат">
+    <Modal
+      destroyOnHidden
+      footer={null}
+      onCancel={() => { creation.cancel(); onClose() }}
+      open={open}
+      title="Новый чат"
+    >
       <Form
+        clearOnDestroy
         disabled={disabled || creation.isPending}
         form={form}
         layout="vertical"
@@ -45,7 +54,12 @@ export function CreateChatForm({ session, disabled, onCreated }: {
             }]
           }
         >
-          <Input autoComplete="tel" placeholder="+7 900 123-45-67" type="tel" />
+          <Input
+            autoComplete="tel"
+            autoFocus
+            placeholder="+7 900 123-45-67"
+            type="tel"
+          />
         </Form.Item>
         <Button
           disabled={disabled || creation.isPending}
@@ -56,6 +70,6 @@ export function CreateChatForm({ session, disabled, onCreated }: {
           Создать чат
         </Button>
       </Form>
-    </Card>
+    </Modal>
   )
 }

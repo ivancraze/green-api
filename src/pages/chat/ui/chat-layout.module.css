@@ -1,0 +1,116 @@
+.page {
+  box-sizing: border-box;
+  height: 100dvh;
+  padding: 8px;
+  overflow: hidden;
+}
+
+.fixed {
+  flex-shrink: 0;
+}
+
+.panels {
+  flex: 1;
+  min-height: 0;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 320px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.sidebarBody {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.sidebar .chatMenu .chatItem {
+  height: auto;
+  padding-block: 8px;
+}
+
+.chatSummary,
+.chatPreview {
+  flex: 1;
+  min-width: 0;
+}
+
+.conversationPane {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.conversation,
+.conversationBody,
+.conversationContent,
+.history {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.conversationBody {
+  overflow: hidden;
+}
+
+.emptyState {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+.historyBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.historyScroll {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.messageList {
+  margin-top: auto;
+}
+
+.message {
+  min-width: 0;
+  max-width: 85%;
+  flex-shrink: 0;
+  overflow-wrap: anywhere;
+}
+
+.messageText {
+  white-space: pre-wrap;
+}
+
+@media (max-width: 767px) {
+  .sidebar {
+    flex: 1;
+  }
+
+  .conversationPane {
+    display: none;
+  }
+
+  .chatSelected .sidebar {
+    display: none;
+  }
+
+  .chatSelected .conversationPane {
+    display: flex;
+  }
+}
