@@ -42,7 +42,7 @@ export function createMaxAdapter(input: ConnectionCredentials): MessengerAdapter
     messenger: 'max',
     checkConnection: signal => checkRealConnection(input, signal),
     getChats: signal => loadGreenApiChats(get, chats, 'max', signal),
-    getMessages: (chatId, signal) => loadGreenApiMessages(post, messages, chatId, signal),
+    getMessages: (chatId, signal) => loadGreenApiMessages(post, messages, chatId, signal, get),
     async resolveRecipient(phone, signal) {
       if (!/^(\+7\d{10}|\+375\d{9})$/.test(phone)) throw new AppError('invalid-max-phone')
       signal.throwIfAborted()

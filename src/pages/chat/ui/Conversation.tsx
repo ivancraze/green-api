@@ -45,7 +45,7 @@ export function Conversation({ chat, session, draft, onDraftChange, onBack, send
     queryKey: messageQueryKey(session, chat.id),
     queryFn: ({ signal }) => session.adapter.getMessages(chat.id, signal),
     meta: { errorHandling: 'local' },
-    retry: false,
+    retry: 2,
   })
   const sendText = useSendText(session, chat.id, () => onDraftChange(''))
   const [visible, setVisible] = useState(() => document.visibilityState === 'visible')

@@ -82,11 +82,28 @@ export async function loadGreenApiMessages(
   messages: Map<string, Message[]>,
   chatId: string,
   signal: AbortSignal,
+  getRecentIncoming?: ReturnType<typeof createGreenApiTransport>['get'],
 ): Promise<Message[]> {
   const result = await post('getChatHistory', { chatId, count: 100 }, signal)
   if (!Array.isArray(result)) throw new AppError('invalid-response')
+  const records: unknown[] = [...result]
+  if (getRecentIncoming && !records.some(item => isRecord(item) && item.type === 'incoming'
+    && (item.typeMessage === 'textMessage' || item.typeMessage === 'extendedTextMessage')
+    && typeof item.textMessage === 'string')) {
+    try {
+      const recent = await getRecentIncoming('lastIncomingMessages', signal, 20160)
+      if (Array.isArray(recent)) {
+        records.push(...recent.filter(item => isRecord(item)
+          && item.chatId === chatId && (item.chatType === undefined || item.chatType === 'user')))
+      }
+    }
+    catch {
+      signal.throwIfAborted()
+      // Дополнительный журнал не должен скрывать уже полученную историю.
+    }
+  }
   const loaded: Message[] = []
-  for (const item of result) {
+  for (const item of records) {
     if (!isRecord(item)) throw new AppError('invalid-response')
     if (item.typeMessage !== 'textMessage' && item.typeMessage !== 'extendedTextMessage') continue
     if (item.isDeleted === true) continue
