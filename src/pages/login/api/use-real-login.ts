@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 
-import { checkRealConnection, type ConnectionCredentials, createMaxAdapter, createWhatsappAdapter, normalizeCredentials } from '@/shared/api'
+import { checkRealConnection, type ConnectionCredentials, createMaxAdapter, createTelegramAdapter, createWhatsappAdapter, normalizeCredentials } from '@/shared/api'
 import { useSession } from '@/shared/session'
 
 export function useRealLogin() {
@@ -29,6 +29,7 @@ export function useRealLogin() {
           credentials,
           ...(credentials.messenger === 'max' ? { adapter: createMaxAdapter(credentials) } : {}),
           ...(credentials.messenger === 'whatsapp' ? { adapter: createWhatsappAdapter(credentials) } : {}),
+          ...(credentials.messenger === 'telegram' ? { adapter: createTelegramAdapter(credentials) } : {}),
         })
       }
       finally {

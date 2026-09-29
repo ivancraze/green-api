@@ -2,4 +2,5 @@ export { createDemoAdapter, type DemoAdapter, demoDelays, type DemoFailures } fr
 export { checkRealConnection, normalizeCredentials } from './green-api-connection'
 export { createMaxAdapter } from './max-adapter'
 export type { Chat, ConnectionCredentials, Message, Messenger, MessengerAdapter, Notification } from './messenger'
+export { createTelegramAdapter } from './telegram-adapter'
 export { createWhatsappAdapter } from './whatsapp-adapter'

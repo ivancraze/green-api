@@ -96,3 +96,16 @@ it('после реального входа в WhatsApp открывает об
   expect(await screen.findByText('Чатов пока нет')).toBeVisible()
   unmount()
 })
+
+it('после реального входа в Telegram открывает общий чат', async () => {
+  vi.stubGlobal('fetch', vi.fn()
+    .mockResolvedValueOnce(Response.json({ stateInstance: 'authorized' }))
+    .mockResolvedValue(Response.json(null)))
+  const { unmount } = renderLogin()
+  fireEvent.click(screen.getByRole('radio', { name: 'Telegram' }))
+  fillCredentials()
+  expect(await screen.findByText('Реальное подключение: Telegram')).toBeVisible()
+  expect(window.location.pathname).toBe('/telegram')
+  expect(await screen.findByText('Чатов пока нет')).toBeVisible()
+  unmount()
+})
