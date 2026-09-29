@@ -81,7 +81,7 @@ export function ChatPage({ session }: { session: Session }) {
             </Col>
             <Col md={16} xs={24}>
               {
-                selectedChat ? <Conversation chat={selectedChat} key={selectedChat.id} /> : (
+                selectedChat ? <Conversation chat={selectedChat} key={selectedChat.id} session={session} /> : (
                   <Card title="Разговор">
                     <Empty description="Выберите чат из списка" />
                   </Card>

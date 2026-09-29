@@ -1,6 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import type {} from '@testing-library/jest-dom/vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { StrictMode } from 'react'
 import { afterAll, beforeAll, expect, it, vi } from 'vitest'
 
@@ -43,7 +43,8 @@ it('открывает чат, переключает разговор и вых
 })
 
 function renderChat(adapter = createDemoAdapter('max')) {
-  const client = createQueryClient(vi.fn())
+  const reportError = vi.fn()
+  const client = createQueryClient(reportError)
   const session: Session = { id: 'test-session', messenger: 'max', adapter }
   const view = render(
     <QueryClientProvider client={client}>
@@ -52,7 +53,7 @@ function renderChat(adapter = createDemoAdapter('max')) {
       </SessionContext>
     </QueryClientProvider>,
   )
-  return { ...view, client }
+  return { ...view, client, reportError }
 }
 
 it('показывает пустой список после загрузки', async () => {
@@ -71,6 +72,43 @@ it('показывает локальную безопасную ошибку и
   expect(await screen.findByRole('alert')).toHaveTextContent(new AppError('network').message)
   fireEvent.click(screen.getByRole('button', { name: 'Повторить загрузку' }))
   expect(await screen.findByRole('menuitem', { name: 'Анна · MAX' })).toBeVisible()
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  client.clear()
+})
+
+it('загружает историю с автором и временем, выводит HTML как текст и открывает пустой чат', async () => {
+  const { client } = renderChat()
+  fireEvent.click(await screen.findByRole('menuitem', { name: 'Анна · MAX' }))
+  const history = screen.getByRole('region', { name: 'История сообщений' })
+  expect(history).toHaveAttribute('aria-busy', 'true')
+  expect(within(history).queryByText('Сообщений пока нет')).not.toBeInTheDocument()
+  expect(await within(history).findByText('Привет! Это тестовый чат MAX.')).toBeVisible()
+  expect(within(history).getAllByText('Анна · MAX')).toHaveLength(2)
+  expect(within(history).getByText('Вы')).toBeVisible()
+  expect(within(history).getByText('Привет! Проверяю отправку текста.')).toBeVisible()
+  const html = within(history).getByText('<b>Это обычный текст, а не HTML.</b>')
+  expect(html).toBeVisible()
+  expect(html.querySelector('b')).toBeNull()
+  const times = history.querySelectorAll('time')
+  expect(times).toHaveLength(3)
+  expect(times[0]).toHaveAttribute('datetime', '2026-01-01T12:00:00.000Z')
+  expect(times[0]).toHaveTextContent(new Date('2026-01-01T12:00:00Z').toLocaleString('ru-RU'))
+
+  fireEvent.click(screen.getByRole('menuitem', { name: 'Борис · MAX' }))
+  expect(screen.queryByText('Привет! Это тестовый чат MAX.')).not.toBeInTheDocument()
+  expect(await screen.findByText('Сообщений пока нет')).toBeVisible()
+  client.clear()
+})
+
+it('показывает безопасную ошибку истории без общего уведомления и повторяет загрузку', async () => {
+  const adapter = createDemoAdapter('max')
+  vi.spyOn(adapter, 'getMessages').mockRejectedValueOnce(new AppError('network'))
+  const { client, reportError } = renderChat(adapter)
+  fireEvent.click(await screen.findByRole('menuitem', { name: 'Анна · MAX' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent(new AppError('network').message)
+  expect(reportError).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByRole('button', { name: 'Повторить загрузку' }))
+  expect(await screen.findByText('Привет! Это тестовый чат MAX.')).toBeVisible()
   expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   client.clear()
 })
