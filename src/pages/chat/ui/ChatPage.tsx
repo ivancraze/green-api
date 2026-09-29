@@ -1,4 +1,4 @@
-import { PlusOutlined } from "@ant-design/icons";
+import {LogoutOutlined, PlusOutlined} from "@ant-design/icons";
 import { useQuery } from '@tanstack/react-query'
 import {
   Button,
@@ -93,7 +93,7 @@ export function ChatPage({ session }: { session: ChatSession }) {
                 Демоотказы
               </Button>
             }
-            <Button onClick={() => setSession(null)}>
+            <Button danger icon={<LogoutOutlined />} onClick={() => setSession(null)}>
               Выйти
             </Button>
           </Flex>

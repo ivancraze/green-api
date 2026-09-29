@@ -32,7 +32,7 @@ export function LoginPage({ initialMessenger = 'max' }: { initialMessenger?: Mes
     <Layout className={styles.page}>
       <main className={styles.container}>
         <Card>
-          <Flex align="center" gap="small" justify="space-between">
+          <Flex align="flex-start" gap="small" justify="space-between">
             <Typography.Title className={styles.title} level={2}>
               {appName}
             </Typography.Title>
@@ -122,10 +122,6 @@ export function LoginPage({ initialMessenger = 'max' }: { initialMessenger?: Mes
                   <Form.Item label="apiTokenInstance" name="apiTokenInstance" rules={[{ required: true, whitespace: true, message: 'Введите токен инстанса.' }]}>
                     <Input.Password autoComplete="new-password" />
                   </Form.Item>
-                  <Typography.Paragraph type="secondary">
-                    Данные хранятся только в памяти и сбрасываются при выходе или перезагрузке.
-                    Подключение проверяет авторизацию инстанса.
-                  </Typography.Paragraph>
                 </>
               )
             }
@@ -137,6 +133,14 @@ export function LoginPage({ initialMessenger = 'max' }: { initialMessenger?: Mes
             >
               {mode === 'demo' ? 'Войти в демо' : 'Подключиться'}
             </Button>
+            {
+              mode !== 'demo' && (
+                <Typography.Paragraph className={styles.session} type="secondary">
+                  Данные хранятся только в памяти и сбрасываются при выходе или перезагрузке.
+                  Подключение проверяет авторизацию инстанса.
+                </Typography.Paragraph>
+              )
+            }
           </Form>
         </Card>
       </main>
