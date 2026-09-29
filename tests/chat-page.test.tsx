@@ -350,7 +350,6 @@ it('получает ответ в другом чате и повторяет �
   client.clear()
 }, 8000)
 
-
 it('обновляет превью из кеша, не запрашивая историю ради списка', async () => {
   const adapter = createDemoAdapter('max')
   const getMessages = vi.spyOn(adapter, 'getMessages')
@@ -376,7 +375,7 @@ it('обновляет превью из кеша, не запрашивая и�
   }
 })
 
-it('Enter в Modal создаёт чат без отправки черновика, закрытие отменяет создание', async () => {
+it('Enter в Modal не отправляет черновик, закрытие отменяет создание', async () => {
   const adapter = createDemoAdapter('max')
   const send = vi.spyOn(adapter, 'sendText')
   const { client, unmount } = renderChat(adapter)
