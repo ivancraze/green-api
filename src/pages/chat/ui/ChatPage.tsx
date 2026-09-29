@@ -149,6 +149,7 @@ export function ChatPage({ session }: { session: ChatSession }) {
               <Menu
                 aria-label="Список чатов"
                 className={styles.chatMenu}
+                inlineIndent={8}
                 items={
                   chats.data.map(chat => ({
                     key: chat.id,
