@@ -1,6 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import type {} from '@testing-library/jest-dom/vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { StrictMode } from 'react'
 import { afterAll, beforeAll, expect, it, vi } from 'vitest'
 
@@ -72,5 +72,25 @@ it('показывает локальную безопасную ошибку и
   fireEvent.click(screen.getByRole('button', { name: 'Повторить загрузку' }))
   expect(await screen.findByRole('menuitem', { name: 'Анна · MAX' })).toBeVisible()
   expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  client.clear()
+})
+
+async function submitPhone(phone: string) {
+  await waitFor(() => expect(screen.getByRole('button', { name: /Создать чат/ })).toBeEnabled())
+  fireEvent.change(screen.getByRole('textbox', { name: 'Телефон' }), { target: { value: phone } })
+  fireEvent.click(screen.getByRole('button', { name: /Создать чат/ }))
+}
+
+it('создаёт чат по нормализованному телефону и повторно открывает его без дубля', async () => {
+  const { client } = renderChat()
+  await screen.findByRole('menuitem', { name: 'Анна · MAX' })
+  await submitPhone('+7 (900) 555-33-22')
+  expect(await screen.findByRole('heading', { name: '+79005553322' })).toBeVisible()
+  expect(screen.getByRole('textbox', { name: 'Телефон' })).toHaveValue('')
+
+  fireEvent.click(screen.getByRole('menuitem', { name: 'Анна · MAX' }))
+  await submitPhone('+79005553322')
+  expect(await screen.findByRole('heading', { name: '+79005553322' })).toBeVisible()
+  expect(screen.getAllByRole('menuitem')).toHaveLength(3)
   client.clear()
 })
